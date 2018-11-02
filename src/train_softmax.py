@@ -180,9 +180,12 @@ def main(args):
         train_op = facenet.train(total_loss, global_step, args.optimizer, 
             learning_rate, args.moving_average_decay, tf.global_variables(), args.log_histograms)
         
-        # Create a saver
-        saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=3)
 
+        # Create savers one to save pre-trained model and one for (new + pretrained) model
+        pretrained_set_vars = [v for v in tf.trainable_variables() if v.name.startswith('InceptionResnetV1')]
+        saver_pretrained_set = tf.train.Saver(pretrained_set_vars, max_to_keep=3)
+        saver_pre_and_ezm_set = tf.train.Saver(tf.trainable_variables(), max_to_keep=3)
+        
         # Build the summary operation based on the TF collection of Summaries.
         summary_op = tf.summary.merge_all()
 
@@ -199,7 +202,8 @@ def main(args):
 
             if pretrained_model:
                 print('Restoring pretrained model: %s' % pretrained_model)
-                saver.restore(sess, pretrained_model)
+                saver_pretrained_set.restore(sess, pretrained_model)
+
 
             # Training and validation loop
             print('Running training')
@@ -245,7 +249,7 @@ def main(args):
                 stat['time_validate'][epoch-1] = time.time() - t
 
                 # Save variables and the metagraph if it doesn't exist already
-                save_variables_and_metagraph(sess, saver, summary_writer, model_dir, subdir, epoch)
+                save_variables_and_metagraph(sess, saver_pre_ezm_set, summary_writer, model_dir, subdir, epoch)
 
                 # Evaluate on LFW
                 t = time.time()
@@ -467,7 +471,7 @@ def save_variables_and_metagraph(sess, saver, summary_writer, model_dir, model_n
     if not os.path.exists(metagraph_filename):
         print('Saving metagraph')
         start_time = time.time()
-        saver.export_meta_graph(metagraph_filename)
+        saver.export_meta_graph(metagraph_filename, strip_default_attrs=True)
         save_time_metagraph = time.time() - start_time
         print('Metagraph saved in %.2f seconds' % save_time_metagraph)
     summary = tf.Summary()
