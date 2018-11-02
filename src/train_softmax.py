@@ -249,7 +249,7 @@ def main(args):
                 stat['time_validate'][epoch-1] = time.time() - t
 
                 # Save variables and the metagraph if it doesn't exist already
-                save_variables_and_metagraph(sess, saver_pre_ezm_set, summary_writer, model_dir, subdir, epoch)
+                save_variables_and_metagraph(sess, saver_pre_and_ezm_set, summary_writer, model_dir, subdir, epoch)
 
                 # Evaluate on LFW
                 t = time.time()
