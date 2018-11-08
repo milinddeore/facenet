@@ -459,6 +459,9 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     stat['lfw_valrate'][epoch-1] = val
 
 def save_variables_and_metagraph(sess, saver, summary_writer, model_dir, model_name, step):
+    # save the graph file
+    tf.train.write_graph(sess.graph_def, '.', 'facenet.pbtxt')
+
     # Save the model checkpoint
     print('Saving variables')
     start_time = time.time()
